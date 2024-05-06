@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Code Checkout') {
+            steps {
+                git url: 'https://github.com/ADITYA2777/node-todo-task-03.git', branch: 'main' 
+            }
+        }
+        stage('Image Build') {
+            steps {
+                script {
+                    docker.build('adityajain0127/nodejs-todo_node-tode-app:tagname')
+                }
+            }
+        }
+        stage('Image Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'DockerHub', passwordVariable: 'DockerHubPassword', usernameVariable: 'DockerHubUser')]) {
+                    script {
+                        docker.withRegistry('https://index.docker.io/v1/', "${DockerHubUser}", "${DockerHubPassword}") {
+                            docker.image('adityajain0127/nodejs-todo_node-tode-app:tagname').push()
+                        }
+                    }
+                }
+            }
+        }
+        stage('Application Deployment') {
+            steps {
+                script {
+                    sh "docker-compose down"
+                    sh "docker-compose up -d"
+                }
+            }
+        }
+    }
+}
