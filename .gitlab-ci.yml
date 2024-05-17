@@ -10,7 +10,7 @@ stages:
   - deploy
 
 variables:
-  DOCKER_IMAGE: 'adityajain0127/nodejs-todo_node-tode-app:latest .'
+  DOCKER_IMAGE: 'adityajain0127/nodejs-todo_node-tode-app:latest'
 
 # Job to clone the GitHub repository
 clone:
