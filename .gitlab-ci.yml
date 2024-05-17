@@ -1,50 +1,40 @@
-# GitLab CI/CD configuration file
-
-# Define the stages of the pipeline
 stages:
-  - code_checkout
-  - build_and_test
-  - scan_image
-  - push_to_dockerhub
-  - application_deployment
+  - build
+  - push
+  - deploy
 
-# Define variables for Docker Hub credentials and image details
 variables:
-  DOCKER_HUB_CREDENTIALS: 'DockerHub'
-  DOCKER_IMAGE_NAME: 'adityajain0127/nodejs-todo_node-tode-app'
-  DOCKER_IMAGE_TAG: 'latest'
+  DOCKER_IMAGE: 'adityajain0127/nodejs-todo_node-tode-app:latest'
 
-# Define the jobs for each stage
-code_checkout:
-  stage: code_checkout
+# Job to build the Docker image
+build:
+  stage: build
   script:
+    - echo "Cloning the repository..."
     - git clone https://github.com/ADITYA2777/node-todo-task-03.git
     - cd node-todo-task-03
-    - git checkout main
-
-build_and_test:
-  stage: build_and_test
-  script:
-    - docker build -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG .
-    - echo 'Code build successful'
-
-scan_image:
-  stage: scan_image
-  script:
-    - echo 'Image scanning complete'
-
-push_to_dockerhub:
-  stage: push_to_dockerhub
-  script:
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - docker push $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG
-    - echo 'Image push successful'
+    - echo "Building the Docker image..."
+    - docker build -t $DOCKER_IMAGE .
   only:
-    - main  # Define which branches trigger this stage (e.g., only on the master branch)
+    - main  # Trigger this job only on the main branch
 
-application_deployment:
-  stage: application_deployment
+# Job to push the Docker image to Docker Hub
+push:
+  stage: push
   script:
+    - echo "Logging in to Docker Hub..."
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - echo "Pushing the Docker image to Docker Hub..."
+    - docker push $DOCKER_IMAGE
+  only:
+    - main  # Trigger this job only on the main branch
+
+# Job to deploy the application using docker-compose
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying the application..."
     - docker-compose down
     - docker-compose up -d
-    - echo 'Deployment successful'
+  only:
+    - main  # Trigger this job only on the main branch
