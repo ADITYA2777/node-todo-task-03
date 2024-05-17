@@ -4,6 +4,7 @@ services:
   - docker:dind
 
 stages:
+  - clone
   - build
   - push
   - deploy
@@ -11,17 +12,27 @@ stages:
 variables:
   DOCKER_IMAGE: 'adityajain0127/nodejs-todo_node-tode-app:latest'
 
+# Job to clone the GitHub repository
+clone:
+  stage: clone
+  script:
+    - echo "Cloning the repository..."
+    - git clone https://github.com/ADITYA2777/node-todo-task-03.git
+  artifacts:
+    paths:
+      - node-todo-task-03/
+
 # Job to build the Docker image
 build:
   stage: build
   script:
-    - echo "Cloning the repository..."
-    - git clone https://github.com/ADITYA2777/node-todo-task-03.git
-    - cd node-todo-task-03
     - echo "Building the Docker image..."
+    - cd node-todo-task-03
     - docker build -t $DOCKER_IMAGE .
   only:
     - main
+  dependencies:
+    - clone
 
 # Job to push the Docker image to Docker Hub
 push:
@@ -30,18 +41,21 @@ push:
     - echo "Logging in to Docker Hub..."
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
     - cd node-todo-task-03
-    - echo "Pushing the Docker image to Docker Hub..."
     - docker push $DOCKER_IMAGE
   only:
     - main
+  dependencies:
+    - build
 
 # Job to deploy the application using docker-compose
 deploy:
   stage: deploy
   script:
-    - cd node-todo-task-03
     - echo "Deploying the application..."
+    - cd node-todo-task-03
     - docker-compose down
     - docker-compose up -d
   only:
     - main
+  dependencies:
+    - push
