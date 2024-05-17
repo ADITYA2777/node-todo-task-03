@@ -40,7 +40,7 @@ push_to_dockerhub:
     - docker push $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG
     - echo 'Image push successful'
   only:
-    - master  # Define which branches trigger this stage (e.g., only on the master branch)
+    - main  # Define which branches trigger this stage (e.g., only on the master branch)
 
 application_deployment:
   stage: application_deployment
